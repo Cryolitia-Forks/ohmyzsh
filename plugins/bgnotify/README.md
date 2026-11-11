@@ -13,6 +13,10 @@ Just add bgnotify to your plugins list in your `.zshrc`
 - On OS X you'll need [terminal-notifier](https://github.com/alloy/terminal-notifier)
   * `brew install terminal-notifier` (or `gem install terminal-notifier`)
 - On Linux, make sure you have `notify-send` or `kdialog` installed. If you're using Ubuntu you should already be all set!
+  * On niri, install `jq` for focused-window detection.
+  * On GNOME Wayland, install and enable [Focused Window D-Bus](https://github.com/flexagoon/focused-window-dbus),
+    and install `busctl` and `jq` for focused-window detection. Without the extension or these tools,
+    notifications are sent regardless of whether the terminal is focused.
 - On Windows you can use [notifu](https://www.paralint.com/projects/notifu/) or the Cygwin Ports libnotify package
 
 

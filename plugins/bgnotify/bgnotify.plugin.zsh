@@ -70,6 +70,9 @@ function bgnotify_appid {
   elif [[ -n $NIRI_SOCKET ]]; then # niri
     local app_id=$(bgnotify_find_niri_appid)
     [[ -n "$app_id" ]] && echo "$app_id" || echo $EPOCHSECONDS
+  elif [[ -n $WAYLAND_DISPLAY && ":${XDG_CURRENT_DESKTOP:l}:" == *:gnome:* ]]; then # GNOME Wayland
+    local app_id=$(bgnotify_find_gnome_appid)
+    [[ -n "$app_id" ]] && echo "$app_id" || echo $EPOCHSECONDS
   elif [[ -z $WAYLAND_DISPLAY ]] && [[ -n $DISPLAY ]] && (( ${+commands[xprop]} )); then
     xprop -root _NET_ACTIVE_WINDOW 2>/dev/null | cut -d' ' -f5
   else
@@ -113,6 +116,18 @@ function bgnotify_find_niri_appid {
   if (( ${+commands[jq]} )); then
     niri msg -j windows | jq '.[] | select(.is_focused) | {app_id, id} | join(",")'
   fi
+}
+
+function bgnotify_find_gnome_appid {
+  (( ${+commands[busctl]} && ${+commands[jq]} )) || return 1
+
+  # JSON output preserves quotes and backslashes in the extension's window data.
+  local window
+  window=$(busctl --user --timeout=1 --auto-start=no --json=short call \
+    org.gnome.Shell /org/gnome/shell/extensions/FocusedWindow \
+    org.gnome.shell.extensions.FocusedWindow Get 2>/dev/null) || return 1
+
+  print -r -- "$window" | jq -er '.data[0] | fromjson | .id // empty | select(type == "number")' 2>/dev/null
 }
 
 function bgnotify_programid {
